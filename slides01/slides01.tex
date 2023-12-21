@@ -1,4 +1,4 @@
-\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\documentclass[12pt]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
 \usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
 \geometry{a4paper}                   		% ... or a4paper or a5paper or ... 
 \usepackage{graphicx}
@@ -8,6 +8,8 @@
 
 \begin{document}
 \maketitle
+\tableofcontents
+\newpage
 \section{Introduction}
 What is an encryption scheme? A triplet  $<Gen,Enc,Dec>.$
 \begin{enumerate}
@@ -111,7 +113,7 @@ Rearranging the above gives equation 1.\\
 
 \begin{enumerate}
 \item $\mathcal{A}$ outputs $m_0,m_1 \in \mathcal{M}$
-\item Choose $k \leftarrow \mathcal{K}$ and  $b \leftarrow {0,1}$ and send $Enc_k(m_b)$ to $\mathcal{A}$
+\item Choose $k \leftarrow \mathcal{K}$ and  $b \leftarrow \{0,1\}$ and send $Enc_k(m_b)$ to $\mathcal{A}$
  \item $\mathcal{A}$ outputs $b'$
  \item Define $Priv_{\mathcal{A},\prod}^{eav}:=1$ iff $b=b'$
 \end{enumerate}
