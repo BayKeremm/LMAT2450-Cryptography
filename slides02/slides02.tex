@@ -5,7 +5,8 @@
 % \geometry{landscape} % rotated page geometry
 \usepackage[parfill]{parskip}
 % See the ``Article customise'' template for come common customisations
-
+\usepackage{amsmath}
+\usepackage{graphicx}
 \title{Slides02}
 
 %%% BEGIN DOCUMENT
@@ -146,15 +147,100 @@ Pr[Priv_{\mathcal{A},\prod}^{eav}(n)=1] = \frac{1}{2} + \epsilon(n)
 \end{equation}
 \textbf{Efficiency and security depends on the security parameter.}
 
+\subsubsection{Building secure encryption schemes}
+Emulating a one-time pad, for $n < l(n)$
+\begin{itemize}
+\item $Gen(1^n)$: pick $k\leftarrow \{0,1\}^{l(n)}$, set $\mathcal{M} = \{0,1\}^{l(n)}$\\
+$\rightarrow$ we want $ |k| < |m| = l(n)$, for any $m \in \mathcal{M}$\\
+$\rightarrow $ Expand, $k \in \{0,1\}^n$ to $G(k) \in \{0,1\}^{l(n)}$
+\item $Enc_k(m):$ Compute and return $c=m \oplus k$\\
+$\rightarrow$ Instead, compute $c=m\oplus G(k)$\\
+$\rightarrow$ Enough if G(k) is \emph{indistinguishable} of random
+\item $Dec_k(c)$: Compute and return $m=c\oplus k$\\
+$\rightarrow$ Instead, compute $c\oplus G(k)$
+\end{itemize}
+$G$ is called a \emph{pseudorandom} generator
+\section{Pseudorandomness}
+A deterministic poly-time algorithm $G$ is a pseudorandom generator (PRG) only if, for any n,\\
+\begin{itemize}
+\item $\forall s \in \{0,1\}^n, G(s) \in \{0,1\}^{l(n)}$ and $l(n) > n$
+\item $\forall$ PPT $D$, $\exists$ negligible function $\epsilon$ s.t.
+\begin{equation}
+|Pr[D(r)=1]-Pr[D(G(s))=1]| \le \epsilon(n)
+\end{equation}
+Where $r\leftarrow \{0,1\}^{l(n)}$ and $s\leftarrow \{0,1\}^n$\\
+$s$ is called the seed, and funciton $l$ us called the expansion factor of $G$.
+\end{itemize}
 
+Pseudorandom generators:
+\begin{itemize}
+\item Can only be computationally secure: $l(n) = 2*n$
+\item $n$ should be large enough to avoid brute-force
+\end{itemize}
+\textbf{Pseudorandom generators exist iff one-way functions exist} \\
+Existence of one-way functions $\rightarrow P \neq NP$\\
+$\rightarrow$\textbf{Assumption: Pseudorandom generators exist}
+\begin{center}
+\begin{align*}
+\text{Definition} & \Rightarrow \text{Assumption} \Rightarrow \text{Reduction}
+\end{align*}
+\end{center}
 
+\emph{Theorem}:\\
+If $G$ is a PRG, then $\prod$ is a (fixed length) encryption scheme that has indistinguishable encryption in the presence of an eavesdropper.\\
+\emph{Proof}:
+\begin{itemize}
+\item $\forall$ PPT $\mathcal{A}$ with $\eta$ advantage
+\item $\exists$ PPT $D$ for $G$ with $\eta$ advantage
+\end{itemize}
+Therefore, $\eta$ must be negligible.
+\newpage
+\subsection{Reduction}
+Suppose:
+\begin{equation}
+Pr[Priv_{\mathcal{A},\prod}^{eav}(n)=1] = \frac{1}{2} + \eta(n)
+\end{equation}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=8cm]{figures/f1.png}
+    \caption{Reduction 1}
+\end{figure}
 
+$\rightarrow \mathcal{A}$ is s.t. $Pr[b=b']=  \frac{1}{2} + \eta(n)$ 
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=12cm]{figures/f2.png}
+    \caption{Reduction 2}
+\end{figure}
 
-
-
-
-
+Observe:
+\begin{itemize}
+\item If $b'' = 0$, Pr[$D$ outputs 1] = $\frac{1}{2}$ $\rightarrow$ one-time pad
+\item If $b'' = 1$, Pr[$D$ outputs 1] = $\frac{1}{2} + \eta(n)$ $\rightarrow$ $Priv_{\mathcal{A},\prod}^{eav}(n)$\\
+This means, when  $b'' = 1$, $D$ distinguishes with advantage $\eta(n)$
+\item If $\mathcal{A}$ is PPT, then $D$ is PPT too
+\end{itemize}
+\newpage
+Results:
+\begin{itemize}
+\item Encryption with keys shorted than messages
+\item Proof is conditional, by reduction
+\item Proof holds for computationally bounded adversaries, and leaves some probability of attack
+\end{itemize}
+\subsection{Variable-length encryption}
+$\prod$ is restricted to messages with $|m| \le l(|k|)$
+\begin{itemize}
+\item We need $G$ with variable-length output
+\item Use $G$ repeatedly until output is long enough
+\item Preserves security if G is used poly many times
+\end{itemize}
+\section{Conclusion}
+\begin{itemize}
+\item Computational security opens doors for cryptography with shorter keys\\
+We can encrypt $m$ of length $p(|k|)$
+\item However, encrypting multiple message with the same key, it becomes insecure (even one-time pad)
+\end{itemize}
 
 
 
