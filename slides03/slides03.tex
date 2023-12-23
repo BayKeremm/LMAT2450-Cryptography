@@ -1,4 +1,3 @@
-
 \documentclass[12pt]{article}
 \usepackage{../eplcrypto}
 \usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
@@ -8,13 +7,182 @@
 % See the ``Article customise'' template for come common customisations
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
 \title{Slides03}
 
 %%% BEGIN DOCUMENT
 \begin{document}
 
+
 \maketitle
 \tableofcontents
 \newpage
+\section{Reminder}
+\subsection{ Experiment $\PrivKeav$}
+\textbf{Experiment} $\PrivKeav(n)$
+\begin{enumerate}
+\item $\mathcal{A}(1^n)$ outputs $m_0,m_1$ of identical lengths
+\item pick $k \leftarrow Gen(1^n)$ and  $b \leftarrow \{0,1\}$ and send $c \leftarrow Enc_k(m_b)$ to $\mathcal{A}$
+ \item $\mathcal{A}(c)$ outputs $b'$
+ \item Define $Priv_{\mathcal{A},\prod}^{eav}(n):=1$ iff $b=b'$
+\end{enumerate}
+$\Pi \define \langle \Gen, \Enc, \Dec \rangle $ has \emph{indistinguishable} encryptions in the presence of eavesdroppers if $\forall$ PPT $\mathcal{A}$, $\exists$ negl. $\epsilon$:
+\begin{equation*}
+Pr[\PrivKeav(n)] = \frac{1}{2} + \epsilon(n)
+\end{equation*}
+
+\section{Building Encryption Schemes}
+So far we have seen encryption schemes for one single message, how do these schemes extend to several messages? We also have seen that using the same key to encrypt more than one message made one-time pad insecure. It is possible to use different key for each message but then the question of how it is transferred and how efficient it is comes into play. As a first step, the definition of security is needed for multiple messages.\\
+\subsection{Secure multiple encryption}
+%EXPERIMENT MULT
+Define the multiple-message eavesdropping experiment $\PrivKmult$(n)
+
+\begin{enumerate}
+\item $\A$ outputs $M_0 = (m_0^1,\dots,m_0^t)$, $M_1 = (m_1^1,\dots,m_1^t)$
+\item Choose $k \leftarrow Gen(1^n)$ and $b \leftarrow \{0,1\}$, and send ($Enc_k(m_b^1),\dots,Enc_k(m_b^t)$) to $\A$
+\item $\A$ outputs $b'$
+\item Define $\PrivKmult$(n)$\define 1$ iff $b=b'$
+\end{enumerate}
+\newpage
+$\Pi \define \langle \Gen, \Enc, \Dec \rangle$ has \emph{indistinguishable multiple encryption} in the presence of eavesdroppers if\\
+$\forall$ PPT $\A$, $\exists \negl$:
+\begin{equation*}
+Pr[\PrivKmult(n)] = \frac{1}{2} + \epsilon(n)
+\end{equation*}
+\textbf{Without maintaining a state between encryptions, we cannot achieve acceptable security with a deterministic scheme.}\\\\
+\textbf{Probabilistic encryption:}
+\begin{itemize}
+\item The same message, encrypted with the same key, yields different results
+\item The decryption remains deterministic.
+\end{itemize}
+\subsection{Security against Chosen-Plaintext Attacks (CPA)}
+So far in the course, the adversaries have been passive. What they did was to eavesdrop on ciphertext, and tried to recover some information on the ciphertext.\\
+But a real-world adversary could have access to additional information.
+\begin{itemize}
+\item Previous encryptions (with same key) of messages he knows
+\item Previous encryptions (with same key) of messages he has chosen
+\item ...
+\end{itemize}
+
+\subsubsection{New adversary}
+\begin{itemize}
+\item Access to an encryption oracle $\Enc_k(\cdot)$ that will encrypt messages of his choice.
+\item Allowed to call oracle adaptively, before and after submitting two challenge messages $m_0, m_1$ of his choice
+\item As before, must tell his bit $b'$ choice
+\end{itemize}
+
+\subsection{ Experiment $\PrivKcpa$}
+\textbf{Experiment} $\PrivKcpa(n)$
+\begin{enumerate}
+\item Pick $k \leftarrow Gen(1^n)$ 
+
+\item $\A$ is given oracle access to $\Enc_k(\cdot)$
+
+\item $\A(1^n)$ outputs $m_0,m_1 \in \M$
+
+\item Choose $b \leftarrow \{0,1\}$ and send $c = \Enc_k(m_b)$ to $\A$
+
+\item $\A$ is again given oracle access to $\Enc_k(\cdot)$
+
+ \item $\A(c)$ outputs $b'$
+
+ \item Define $\PrivKcpa(n):=1$ iff $b=b'$
+
+\end{enumerate}
+$\Pi \define \langle \Gen, \Enc, \Dec \rangle $ has \emph{indistinguishable} encryption under a chosen-plaintext attack if $\forall$ PPT $\A$, $\exists$ negl. $\negl$:
+\begin{equation*}
+Pr[\PrivKcpa(n)] = \frac{1}{2} + \negl(n)
+\end{equation*}
+\textbf{CPA-security implies security against an eavesdropper.}\\\\
+Why not we ask in 5th step of the $\PrivKcpa$ that $\A$ cannot ask for encryption of $m_0$ or $m_1$? Well, when we have a probabilistic encryption scheme which means even if $\A$ asks this, it will not give too much information to him in the experiment.\\\\
+
+\subsubsection{Extending the CPA-security definition and relations}
+\begin{itemize}
+\item CPA-security for single encryption $\rightarrow$ CPA-security for multiple encryption
+\end{itemize}
+
+\textbf{CPA $\rightarrow$ Multiple message eavesdropper $\rightarrow$ Eavesdropper}
+
+\subsection{Constructing CPA-secure encryption scheme}
+Idea for a probabilistic encryption scheme:\\
+Change $\Enc$ as follows:\\
+\begin{itemize}
+\item Pick $r \leftarrow \{0,1\}^n$ and encrypt $m$ as $\langle r, G(k||r)\oplus m \rangle$
+\end{itemize}
+$G$, as the PRG, is only guaranteed to output pseudorandom values with a secret seed.\\
+Therefore, there is a need for something stronger than a PRG. A function F  that when $r$ is public (but not k),  F(k,r) is pseudorandom.
+\subsubsection{Pseudorandom Functions and Permutations}
+Pseudorandom functions generalize the concept of pseudorandom generators. Rather than focusing on strings that look random, we are now interested in functions that exhibit a "random-like" behavior. Now, when we talk about pseudorandomness, it doesn't make much sense to say that a specific, fixed function $f: \{0,1\}^* \rightarrow \{0,1\}^*$ is pseudorandom. This is similar to saying that any fixed function is random, which doesn't have a meaningful interpretation. Instead, we need to consider the pseudorandomness of a distribution of functions. This distribution arises when we think about keyed functions.
+
+A keyed function $F: \{0,1\}^* \times \{0,1\}^* \rightarrow \{0,1\}^*$ is a two input function, where the first input is called the \emph{key} and denoted by $k$. The security parameter $n$ indicates the key length, input length, and output length. \\
+
+Let $\textbf{Func}_n$ denote the set of all functions mapping $n$-bit strings to $n$-bit strings.
+In typical usage a key $k \in \{0,1\}^n$ is chosen and fixed, and we are then interested in single-input function $F_k:  \{0,1\}^n \rightarrow \{0,1\}^n$ defined by $F_k(x) \define F(k,x)$ mapping $n$-bit input strings to $n$-bit output strings.\\
+
+Keyed function $F$ and distribution of functions:
+\begin{itemize}
+\item A keyed function $F$ creates a distribution of functions in $\textbf{Func}_n$
+\item This distribution is formed by choosing a random key $k \in \{0,1\}^n$ and then considering the resulting single-input function $F_k$
+\end{itemize}
+
+Pseudorandomness of $F$:
+\begin{itemize}
+\item $F$ is called pseudorandom if, when we apply it with a uniformly chosen key $k$ to create $F_k$, the resulting function $F_k$ is indistinguishable from a function chosen uniformly at random from the set of $\textbf{Func}_n$.
+\end{itemize}
+
+\newpage
+\emph{Let $\textbf{Func}_n$ denote the set of all functions mapping $n$-bit strings to $n$-bit strings.}\\ 
+How many functions there are in $\textbf{Func}_n$?
+\begin{itemize}
+\item What is a function in our case?\\
+One-to-one correspondence from domain $D = \forall x \in \{0,1\}^n$ to range  $R = \forall x \in \{0,1\}^n$ (they are the same in our case).
+\item How many functions there are mapping n-bit strings to n-bit strings?\\
+Think about a look up table as below:
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline
+    $x$ & $f(x)$ \\
+    \hline
+    1 & $a$ \\
+    2 & $b$ \\
+    3 & $c$ \\
+    \hline
+  \end{tabular}
+  \caption{Example lookup table.}
+  \label{tab:your_table_label}
+\end{table}
+x is mapped to f(x), in our case the domain and range are n-bits, which means there are $2^n$ entries in the table (values that cover the n-bit input x). Also, the output of the function, $(x)$ is n bits, so this means that $a$ in the example above is an n-bit number. \\
+So, a function in  $\textbf{Func}_n$ can be described by $2^n\times n$ bits ($2^n$ entries where each entry is n-bits). Think about this as a one huge number of $2^n\times n$-bits, how many different values can this $2^n\times n$-bit number can have $\rightarrow$ $2^{2^n\times n}$. Therefore, there are $2^{2^n\times n}$ functions in $\textbf{Func}_n$.
+\item What does it mean to select a uniform function $f \in \textbf{Func}_n$?\\
+It means to select each row in the lookup of $f$ table uniformly.
+\end{itemize}
+
+\textbf{What is now a pseudorandom function?}
+\begin{itemize}
+\item It is a keyed function $F$ such that $F_k$ (for uniform $k\in \{0,1\}^n$) is indistinguishable from $f$ for uniform  $f \in \textbf{Func}_n$. The PRF is chosen from a distribution over (at most) $2^n$ distinct functions, whereas $f$ is chosen from all $2^{2^n\times n}$ in $\textbf{Func}_n$
+\end{itemize}
+The set of functions \( F \) can take on is limited to \( 2^n \) distinct possibilities, making it a smaller, more manageable set compared to the vast set of all possible functions. The pseudorandomness property ensures that, to an observer, the behavior of \( F_k \) with a chosen key is as good as interacting with a function randomly selected from the smaller set \( \textbf{Func}_n \).
+\subsubsection{Indistinguishability} slide 24
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}
