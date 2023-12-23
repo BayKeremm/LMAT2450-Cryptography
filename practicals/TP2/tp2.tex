@@ -1,0 +1,186 @@
+
+\documentclass[12pt]{article}
+\usepackage{../../eplcrypto}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage[parfill]{parskip}
+% See the ``Article customise'' template for come common customisations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\title{Practical lesson 2}
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+
+\textbf{Exercise 1:} An attack\\
+Let $F$ be a PRP. Consider the mode of operation in which a uniform value $IV \in \{0,1\}^n$ is chosen, and the $i$-th ciphertext block $c_i$ is computed as\\
+ \begin{equation*}
+ c_i \define F_k(IV+i+m_i)
+ \end{equation*}
+  where each $m_i \in \{0,1\}^n$ and the addition is performed modulo $2^n$. \\
+ Show that this scheme is not EAV-secure.\\
+ \textbf{Solution:}\\
+ Select the following messages:
+ \begin{equation*}
+m_0 = (0\dots01, 0\dots0)
+ \end{equation*} 
+ \begin{equation*}
+m_1 = (0\dots0, 0\dots0)
+ \end{equation*} 
+ \textbf{Reminder: Experiment} $\PrivKeav(n)$
+\begin{enumerate}
+\item $\mathcal{A}(1^n)$ outputs $m_0,m_1$ of identical lengths
+\item pick $k \leftarrow Gen(1^n)$ and  $b \leftarrow \{0,1\}$ and send $c \leftarrow Enc_k(m_b)$ to $\mathcal{A}$
+ \item $\mathcal{A}(c)$ outputs $b'$
+ \item Define $Priv_{\mathcal{A},\prod}^{eav}(n):=1$ iff $b=b'$
+\end{enumerate}
+$\Pi \define \langle \Gen, \Enc, \Dec \rangle $ has \emph{indistinguishable} encryptions in the presence of eavesdroppers if $\forall$ PPT $\mathcal{A}$, $\exists$ negl. $\epsilon$:
+\begin{equation*}
+Pr[\PrivKeav(n)] = \frac{1}{2} + \epsilon(n)
+\end{equation*}
+
+
+\begin{align*}
+c = 
+\left\{
+    \begin {aligned}
+         & (Enc_k(IV+0+1), Enc_k(IV+1+0) \quad & for \,b=0 \\
+         & (Enc_k(IV+0+0), Enc_k(IV+1+0) \quad & for \,b=1
+    \end{aligned}
+\right.
+\end{align*}
+
+\begin{align*}
+\text{output}\, b= 
+\left\{
+    \begin {aligned}
+         & 0 \quad & \text{if} \,c_0=c_1 \\
+         & 1 \quad & \text{else}
+     \end{aligned}
+\right.
+\end{align*}
+
+So:
+\begin{equation*}
+Pr[\PrivKeav(n)] = 1
+\end{equation*}
+Which is not negligible, so the scheme is not EAV-secure.
+
+
+\textbf{Exercise 2:} Reduction\\
+Let $\Pi \define \langle \Gen,\Enc,\Dec\rangle$ be an encryption scheme having
+indistinguishable encryption under a chosen plaintext attack. Suppose we
+define a new scheme $\Pi' \define \langle \Gen',\Enc',\Dec'\rangle$ as follows.
+\smallskip
+\begin{itemize}
+  \item $\Gen' \define \Gen$
+  \item $\Enc_k'(m) \define \Enc_k(m)||1$ (i.e. a `1' bit is appended to the ciphertext)
+  \item $\Dec_k'(c) \define \Dec_k(c_1)$, where $c_1$ is obtained by discarding the last bit of $c$.
+\end{itemize}
+\begin{enumerate}
+\item Is $\Pi'$ also a mult-EAV secure encryption scheme? Provide an attack or a reduction depending on your claim.\\
+Adversary $\A$ attacking $\Pi$, using adversary $\A'$ attacking $\Pi'$, as a subroutine.\begin{itemize}
+\item $\A'$ outputs two messages of length n, $m_0, m_1$
+\item $\A$ takes $m_0, m_1$, and forwards it to $\O$
+\item $\O$ having the key, and having selected a random $b \in \{0,1\}$ sends back to $\A$ the ciphertext $c=\Enc_k(m_b)$
+\item $\A$ having received the ciphertext c, concatenates 1, as $c'=c||1$, and sends it to $\A'$
+\item $\A'$ outputs $b'$, and $\A$ outputs the same $b'$
+\item $\A$ wins against $\Pi$ if $b'=b$, which happens if $\A'$ wins against $\Pi'$, which is emulated by $\A$.
+\end{itemize}
+Therefore,
+\begin{equation*}
+Pr[\PrivKeav(n)=1] = Pr[\PrivK_{\A',\Pi'}^{eav}(n)=1]
+\end{equation*}
+Keeping in mind the theorem, if a scheme is EAV-secure for one message, it is EAV-secure for multi-message setting (See the reference book).
+\item Answer the same question but considering the CPA security of $\Pi'$, assuming that $\Pi$ is CPA secure\\
+The same reduction as above, but now with the CPA-experiment, $\PrivKcpa$
+\end{enumerate}
+\newpage
+
+
+
+\textbf{Exercise 3:} PRG\\
+Let $G$ be a PRG with expansion factor $l(n)>2n$. In each of the following cases, say whether $G'$ is necessarily a PRG. If yes give a proof, if not, show a counterexample.\\
+\textbf{Reminder PRG:} A deterministic poly-time algorithm $G$ is a pseudorandom generator (PRG) only if, for any n,
+\begin{itemize}
+\item $\forall s \in \{0,1\}^n, G(s) \in \{0,1\}^{l(n)}$ and $l(n) > n$
+\item $\forall$ PPT $D$, $\exists$ negligible function $\epsilon$ s.t.
+\begin{equation*}
+|Pr[D(r)=1]-Pr[D(G(s))=1]| \le \epsilon(n)
+\end{equation*}
+Where $r\leftarrow \{0,1\}^{l(n)}$ and $s\leftarrow \{0,1\}^n$\\
+$s$ is called the seed, and funciton $l$ us called the expansion factor of $G$.
+\end{itemize}
+\begin{enumerate}
+\item \emph{Define $G'(s)=G(s_1\dots s_{n/2})$, where $s=s_1\dots s_n \in \{0,1\}^n$}\\\\
+%The distinguisher $\D$ selects two seeds:\\
+%\begin{equation*}
+%s_0 = (s\dots s, s_0^1,s_0^2,\dots,s_0^{n/2})
+%\end{equation*}
+%\begin{equation*}
+%s_1 = (s\dots s, s_1^1,s_1^2,\dots,s_1^{n/2})
+%\end{equation*}
+%Where the first n/2 bits are the same of the two selected seeds $s_0, s_1$. Then the distinguisher $\D$ outputs 1 if the two seeds return the same $G(s)$ output. Note: by Kerckhoﬀs’ principle, the specification of $G$ is known to $\D$. Here we see that the distinguisher will be able to tell if it is dealing with a PRG or not, so this construction is not a PRG.
+We have $l(n) > 2n$, so $|G'(s)| > \frac12*2n=n$, as required by any PRG!\\
+Let $l'$ be the expansion factor of $G'$.  FIx a PPT algorithm $D$ and set
+\begin{equation*}
+\negl(n) \define |Pr[D(r)=1]-Pr[D(G'(s))=1]|
+\end{equation*}
+Where, $r \leftarrow \{0,1\}^{l'(n)}$ and $s \leftarrow \{0,1\}^n$.\\
+By definition of $G'$, we have that
+\begin{equation*}
+Pr[D(G'(s))=1] = Pr[D(G(s'))=1]
+\end{equation*}
+Where $s' \leftarrow \{0,1\}^{n/2}$\\
+Therefore, we arrive at the following:
+
+\begin{equation*}
+|Pr[D(r)=1] - Pr[D(G(s'))=1]| = \negl(n) = \negl'(n/2)
+\end{equation*}
+Where $\negl'(n) \define \negl(2n)$, since $\negl'$ must be negligible (from the question statement that G is negligible), we conclude that $\negl$ is negligible as well. So $G'$ is a PRG.
+\\
+\item \emph{$G'(s)=G(0^{|s|}||s)$ where $s \in \{0,1\}^n$, that is, we prepend $|s|$ '0' bits to s.}\\\\
+No, let's define $H: \{0,1\}^n \rightarrow \{0,1\}^{4n}$ as a PRG \\
+and let's think $G(s)=H(s_1\dots s_{n/2})$
+Then,
+\begin{equation*}
+G'(s) = G(0^{|s|}||s) = H(0^{|s|})
+\end{equation*}
+The problem here is that now it looks like $G'$, defined in terms of H above, is only using $0^{|s|}$ as input, which is not uniformly distributed, as was required in the PRG definition above.
+
+\item \emph{Define $G'(s) \define G(s) || G(s+1)$}
+
+let's define $F: \{0,1\}^n \rightarrow \{0,1\}^{2n}$ as a PRG \\
+and let's think $G(s)=F(s_1\dots s_{n-1})$. If the last bit of s is 0, then we have
+\begin{equation*}
+G'(s) \define G(s) || G(s+1) = F(s_1\dots s_{n-1})||F(s_1\dots s_{n-1})
+\end{equation*}
+So, now s and s+1 only differ in the last bit (since it was zero), this means that with probability 1/2 the two halves of the output of $G'$ are the same. This is not a PRG.
+
+
+
+
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
