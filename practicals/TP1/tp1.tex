@@ -1,0 +1,182 @@
+
+\documentclass[12pt]{article}
+\usepackage{../../eplcrypto}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage[parfill]{parskip}
+% See the ``Article customise'' template for come common customisations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\title{Practical lesson 1}
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+
+\textbf{Exercise 1:} Perfect secrecy\\
+We define the following encryption scheme for messages, keys and ciphertexts in $\mathcal{M}=\mathcal{C}=\mathcal{K}=\mathbb{Z}_n$, where $\mathbb{Z}_n$ is essentially the integers in the inverval $[0,n)$,(in fact ($\mathbb{Z}_n$, +) forms a group).
+\begin{itemize}
+\item $Gen$ outputs a key $k \in \mathcal{K}$ selected uniformly at random
+\item $Enc_k(m):=k+m$ mod $n$
+\item $Dec_k(c):=c-k$ mod $n$
+\end{itemize}
+Suppose messages are drawn from $\mathcal{M}$ according to the binomial distribution. More precisely, $M ~ Bi(n-1,p)$ for some probability $p$ which means that $\forall m \in \mathcal{M}:Pr[M=m]=\binom{n-1}{m}p^m(1-p)^{n-1-m}$
+\begin{enumerate}
+\item \emph{Show that the encryption scheme above is perfectly secret}\\
+Perfect secrecy:\begin{itemize}
+\item Each key is used with equal probability (Gen takes uniformly at random)
+\item For every plaintext x and ciphertext y there is a unique key k s.t. $Enc_k(x)=y$
+\end{itemize}
+\begin{equation*}
+|\mathcal{K}|=|\mathcal{M}|=|\mathbb{Z}_n|
+\end{equation*}
+From condition 1 we obtain the following:
+\begin{equation*}
+\begin{aligned}
+    Pr[ C=c \,|\,  M=m] &= Pr[K+M=c \, | \, M = m] \\
+    &= Pr[K=c-m]\\
+    &= \frac{1}{|\mathcal{K}|}
+\end{aligned}
+\end{equation*}
+From condition 2:
+\begin{equation*}
+\begin{aligned}
+    Pr[ M=m \,|\,  C=c] &= \frac{Pr[ C=c \,|\,  M=m] * Pr[M=m]}{Pr[C=c]} \\
+    &= Pr[M=m]
+\end{aligned}
+\end{equation*}
+Scheme is perfectly secret.
+\item \emph{Evaluate $Pr[C=c]$ for every $c \in C$}
+\begin{equation*}
+\begin{aligned}
+    Pr[C=c] &= \sum\limits_{m \in \mathcal{M}} Pr[C=c | M=m]*Pr[M=m] \\
+    &= \frac{1}{|K|} \sum\limits_{m \in \mathcal{M}}  Pr[M=m]\\
+    &= \frac{1}{|K|}
+\end{aligned}
+\end{equation*}
+\item \emph{Evaluate $Pr[K=k|C=c]$ for every $k \in \mathcal{K}$ and $c \in \mathcal{C}$}
+\begin{equation*}
+\begin{aligned}
+    Pr[ K=k \,|\,  C=c] &= Pr[C-M=k \, | \, C = c] \\
+    &= Pr[c-M=k]\\
+    &= Pr[M=c-k] \,(note:\,m=c-k)\\
+    &= \binom{n-1}{m}p^m(1-p)^{n-1-m}
+\end{aligned}
+\end{equation*}
+\end{enumerate}
+\newpage
+
+\textbf{Exercise 2:} Negligible functions\\
+\begin{enumerate}
+\item \emph{Let $f$ be a negligible function in $n$. Show that $g:\mapsto 1000*f(n)$ is negligible too.}\\
+$f$ is negligible iff:\\
+$\forall$ positive polynomial $p$, $\exists$N such that $\forall n\ge N$:\\
+\begin{equation}
+f(n) \le \frac{1}{p(n)}
+\end{equation}
+This definition also holds for the case in the question, $1000*f(n)$ is still negligible.
+\item \emph{Show that the function $n\mapsto n^{-log(n)}$ is negligible in $n$}.\\
+let $p(n)=a*n^k, a > 0$\\
+f is negligible iff for all positive polynomial p, there exist an N such that for all $n\geq N$: $ f(n) \leq \frac{1}{p(n)}$.
+\begin{equation*}
+n^{-log(n)} \le \frac{1}{a*n^k} = a^{-1}* n^{-k}
+\end{equation*}
+\begin{equation*}
+-log(n) \le -log(a) - k
+\end{equation*}
+\begin{equation*}
+log(n) \ge log(a) + k
+\end{equation*}
+\begin{equation*}
+n \ge e^{k+log(a)}
+\end{equation*}
+So for any polynomial, we can go to $n \ge e^{k+log(a)}$ and get an N that. after all the values n, the function will be negligible.\\
+\end{enumerate}
+\newpage
+
+
+
+\textbf{Exercise 3:} Efficiency\\
+Explain why the function that maps $n$ on a sequence of "1" of length $|\sqrt{n}|$ cannot be evaluated by an efficient algorithm in the size of the entry.
+\begin{algorithm}
+\begin{algorithmic}
+    \REQUIRE $n \geq 0$
+    \ENSURE A sequence of $\sqrt{n}$ ``$1$''
+    \FOR{$i=0$ to $\lfloor\sqrt{n}\rfloor$}
+        \STATE Print `1'
+    \ENDFOR
+\end{algorithmic}
+\caption{example of algorithm}
+\label{alg1}      
+\end{algorithm}
+Hint: see $n$ as a power of $2$.\\
+An algorithm A is efficient if there exist a PPT p such that, the steps required are:
+  \[ A(x) \leq p(|x|) \]
+The input $n$ can be expressed under binary form as: \[n = 2^{|n|}\]
+  Let's say that $k = |n|$. We know that the algorithm has to do at least $\sqrt{n}$ steps.
+ \[\sqrt{n} = \sqrt{2^k} = 2^{\frac{k}{2}}\]
+  Which is exponential, not polynomial.
+\newpage
+
+
+
+
+\textbf{Exercise 4:} Security model\\
+Let $\negl$ denote a negligible function.
+Remember that $\Pi \define \langle \Gen, \Enc, \Dec \rangle$ has \emph{indistinguishable
+multiple encryption in the presence of eavesdroppers} if $\forall$
+PPT $\A$, $\exists$ $\negl$:
+  \[\Pr[\PrivKmult(n)=1]\leq\frac12+\negl(n) \,,\]
+where $\PrivKmult(n)$ is defined as follows.
+\begin{enumerate}
+\item   $\A$ outputs $M_0=(m_0^1,\ldots,m_0^t),
+M_1=(m_1^1,\ldots,m_1^t)$
+\item Choose $k \leftarrow \G(1^n)$ and $b \leftarrow \{0,1\}$, and send
+  $(\Enc_k(m_b^1),\ldots,\Enc_k(m_b^t))$ to $\A$
+\item $\A$ outputs $b'$
+\item Define $\PrivKmult(n) \define 1$ iff $b=b'$
+\end{enumerate}
+
+Also remember that $\Pi \define \langle \Gen, \Enc, \Dec \rangle$ has \emph{indistinguishable
+encryption under a chosen-plaintext attack} if $\forall$ PPT $\A$,
+$\exists$ $\negl$:
+  \[\Pr[\PrivKcpa(n)=1]\leq\frac12+\negl(n) \,,\]
+where $\PrivKcpa(n)$ is defined as follows.
+
+\begin{enumerate}
+  \item Choose $k\leftarrow \Gen(1^n)$
+  \item \textbf{$\A$ is given oracle access to $\Enc_k(\cdot)$}
+  \item $\A$ outputs $m_0, m_1 \in \M$
+  \item Choose $b\pick \bset$ and send $\Enc_k(m_b)$ to $\A$
+  \item \textbf{$\A$ is again given oracle access to $\Enc_k(\cdot)$}
+  \item $\A$ outputs $b'$
+  \item Define $\PrivKcpa(n) \define 1$ iff $b=b'$
+\end{enumerate}
+
+Define the concept of indistinguishable \emph{multiple} encryption under a chosen-plaintext attack.\\
+See the book.
+%"left-or-right oracle" $\textbf{LR}_{sk,b}$, that, on input a pair of equal-length messages $m_0,m_1$, computes the ciphertext $c \leftarrow \Enc_k (m_b)$ and returns c. \\
+%\newpage
+%\textbf{The LR-oracle experiment} $\PrivK_{A,\Pi}^{\text{LR-cpa}}$:
+%\begin{enumerate}
+%    \item Choose $k \leftarrow \Gen(1^n)$
+%    \item A uniform bit $b \in \{0,1\}$ is chosen
+%    \item $\A$ is given oracle access to $\textbf{LR}_{sk,b}(\cdot,\cdot)$
+%    \item $\A$ outputs $M_0 = (m_0^1, \ldots, m_0^t)$, $M_1 = (m_1^1, \ldots, m_1^t)$
+%    \item Choose $b \leftarrow \{0,1\}$, and send $(\Enc_k(m_b^1), \ldots, \Enc_k(m_b^t))$ to $\A$
+%    \item $\A$ is again given oracle access to $\Enc_k(\cdot)$
+%    \item $\A$ outputs $b'$
+%    \item Define$\PrivK_{A,\Pi}^{\text{LR-cpa}}(n) \define 1$ iff $b = b'$
+%  \end{enumerate}
+
+
+
+
+
+
+\end{document}
