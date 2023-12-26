@@ -284,8 +284,7 @@ The probability can be calculated using combinatorics, but a simplified version 
 P(\text{{at least one shared birthday}}) = 1 - \frac{365}{365} \times \frac{364}{365} \times \frac{363}{365} \times \ldots \times \frac{365 - n + 1}{365}
 \]
 where \( n \) is the number of people in the group.
-
-More simply:\\
+\subsubsection*{Connection with encryption}
  If you are randomly selecting values from a space of size N, the probability of encountering a collision (i.e., selecting the same value more than once) becomes significant after about $\sqrt{N}$ selections ($\sqrt{365} \approx 19$ ).
  
  So, the risk to "draw" the same $r$ twice is driven by the birthday paradox. Negligible if the number of messages is negligible compared to $2^{n/2}$ where n is the block length.\\
@@ -295,7 +294,6 @@ More simply:\\
 \item This means that not only key size but also the block size (data processed at a time) is a security factor. (DES had blocks of size 64 bits)
 \item AES, the most widely used PRF today, has blocks of size 128 bits, independently of the key size.
 \end{itemize}
-\newpage
  
 \section{Modes of Operation and Encryption in Practice}
 \subsection{Stream Ciphers}
