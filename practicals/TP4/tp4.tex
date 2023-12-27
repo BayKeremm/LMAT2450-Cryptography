@@ -1,0 +1,202 @@
+\documentclass[12pt]{article}
+\usepackage{../../eplcrypto}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage[parfill]{parskip}
+% See the ``Article customise'' template for come common customisations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\title{TP4}
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Exercise 1: Simple Attacks}
+a) Let $MAC = (\Gen, \Mac, \Vrfy)$ be a variable-length MAC that is existentially unforgeable under an adaptive chosen-message attack. Consider the following schemes $MAC' = (\Gen', \Mac', \Vrfy') $ based on $\Mac$ with $\Gen'=\Gen$ and where $\Mac'$ are defined as follows:
+\begin{enumerate}
+	\item $\Mac'_k(m) \define (\Mac_k(m), \Mac_k(m\xor 0\dots01))$
+	\item $\Mac'_k(m) \define \Mac_k\left(\bigoplus_{i=1}^l m_i \right)$
+	\item $\Mac'_k(m) \define (\Mac_k(m_1), \dots, \Mac_k(m_l))$
+	\item $\Mac'_k(m) \define (\Mac_k(m_1), \Mac_k(m_1||m_2), \dots, \Mac_k(m_1||\dots||m_l))$
+\end{enumerate}
+Show that those schemes are not existentially unforgeable under an adaptive chosen-message attack.
+\begin{enumerate}
+\item Do the $\MacForge_{A',MAC'}(n)$, query for $m=0^n$ and get $t_1=\Mac_k(m), t_2=\Mac_k(m\xor 0\dots01)$. Then output $m^*=0\dots01$ and $t=(t_2,t_1)$.
+\item Ask for $m=0\dots00||0\dots01$ and get $t=\Mac_k(0\dots01)$. Then output $m=0\dots01||0\dots00$ and $t^*=t$.
+\item Ask for $m=0\dots01||0\dots00$ and get $t=(\Mac_k(0\dots01),\Mac_k(0\dots00))=(t_1,t_2)$ then output $m=0\dots00||0\dots01$ and $t*=(t_2,t_1)$
+\item Ask for $m=m_1||m_2$ and get $t=(\Mac_k(m_1),\Mac_k(m_2))=(t_1,t_2)$ then output $m_1$ and $t_1$
+
+\end{enumerate}
+
+b) Let $\Pi = (\Gen, \Enc, \Dec)$ be a variable length encryption scheme that is CCA-secure. Consider $\Pi' = (\Gen', \Enc', \Dec')$ based on $\Pi$ with $\Gen'=\Gen$ defined as follows:
+\begin{enumerate}
+	\item $\Enc'_k(m) \define \left(\Enc_k(m), \Enc_k\left(\bigoplus_{i=1}^l m_i\right)\right)$
+	\item $\Enc'_k(m) \define \left(\Enc_k(m), \bigoplus_{i=1}^l m_i\right) $
+	\item $\Enc'_k(m) \define (\Enc_k(m), \Enc_k(m \oplus 110\dots0))$
+	\item $\Enc'_k(m) \define (\Enc_k(m||0), \Enc_k(m))$
+\end{enumerate}
+\begin{enumerate}
+\item We ask $m=0\dots01 || 0\dots01$ and get $c=(c_1, c_2)=(\Enc_k(m), \Enc_k(0\dots0))$. Then we output $m_0=0\dots0||0\dots0$ and $m_1=1\dots1||1\dots1$ we then get the challenge $c=(c^*_1, c^*_2)=(\Enc_k(m_b), \Enc_k(00\dots00))$. We then ask to decrypt $c^*=(c^*_1, c_2)$ and get $m_b$.
+
+\item Output $m_0=0\dots00, m_1=0\dots01$ and get $(\Enc_k(m_b),b)$
+
+\item Output $m_0=0^n, m_1=1^n$ get $c=(\Enc_l(m_b), \Enc_k(m_b\xor 110\dots0)) = (c_1,c_2)$. Then ask to decrypt $(c_2,c_1)$ and get $m_b\xor 110\dots0$ then just do $m_b\xor 110\dots0 \xor 110\dots0$ to get $m_b$
+
+\item $m_0=0^n, m_1=1^n$ This one no solution ! 
+
+\end{enumerate}
+
+
+\section{Exercise 2: Unsuccessful MAC length extension}
+
+Let $F$ be a PRF. Below, we describe three \textit{insecure} \emph{variable-length} message authentication codes (\textit{a.k.a.} MACs), $\Pi_1$, $\Pi_2$ and $\Pi_3$, which all use the same key generation algorithm $\G$. The message space is \emph{any (non negative) number} of message blocks in $\{0,1\}^n$, where $n$ is the security parameter.
+%
+\begin{description}
+	\item[$\G(1^n)$] outputs a random key $k\gets\bset^n$.
+\end{description}
+%
+The scheme $\Pi_3$ is built from $\Pi_2$ which is itself built from $\Pi_1$ as an (unsuccessful) attempt to ``patch'' the previous scheme:
+%
+\begin{description}
+	\item[$\Pi_1=(\Gen,\Mac^1,\Vrfy^1)$:]
+	\emph{``Deterministic MAC -- Chaining PRFs''}
+
+	$\Mac^1_k(m_1,\ldots,m_\ell)$ computes $t_1=F_k(m_1)$ as well as
+	$t_i=F_k(m_i\oplus t_{i-1})$, for $i=2$ to $\ell$, and returns $t \define t_\ell$ (note that only the last block is returned).
+
+	$\Vrfy^1_k((m_1,\ldots,m_{\ell}),t)$ outputs $1$ if
+	$\Mac^1_k(m_1,\ldots,m_{\ell})=t$, and 0 otherwise.
+	\item[$\Pi_2=(\Gen,\Mac^2,\Vrfy^2)$:]
+	\emph{``Padding a random message block in the end''}
+
+	$\Mac^2_k(m_1,\ldots,m_\ell)$ first picks a random $r\gets\{0,1\}^n$ and
+	then runs $t=\Mac_k^1(m_1,\ldots,m_\ell,r)$ and outputs $(r,t)$.
+
+	$\Vrfy^2_k((m_1,\ldots,m_{\ell}),(r,t))$ outputs $1$ if
+	$\Mac^1_k(m_1,\ldots,m_{\ell},r)=t$, and 0 otherwise.
+
+	\item[$\Pi_3=(\Gen,\Mac^3,\Vrfy^3)$:]
+	\emph{``Padding a random message block in the beginning''}
+
+	$\Mac^3_k(m_1,\ldots,m_\ell)$ first picks a random $s\gets\{0,1\}^n$ and
+	then runs $(r,t)=\Mac_k^2(s,m_1,\ldots,m_\ell)$ and outputs $(r,s,t)$.
+
+	$\Vrfy^3_k((m_1,\ldots,m_{\ell}),(r,s,t))$ outputs $1$ if
+	$\Mac^1_k(s,m_1,\ldots,m_{\ell},r)=t$, and 0 otherwise.
+\end{description}
+
+\begin{enumerate}
+	\item Describe $\Mac_k^3(m_1,\ldots,m_\ell)$ explicitly in term of computations
+	of $F_k$ (and $\oplus$ of course).
+	\item Show the correctness of $\Pi_3$.
+	\item Mount a forgery attack on these MACs.
+\end{enumerate}
+
+
+
+
+\subsection{Exercise 3: successful MAC length extension}
+
+Let $\Pi' \define \langle\Gen',\Mac',\Vrfy'\rangle$ be a secure fixed-length MAC. We define a variable-length MAC $\Pi \define \langle\Gen,\Mac,\Vrfy\rangle$ as follows:
+
+\begin{itemize}
+	%
+	\item $\Gen$: choose random $k \pick \bset^n$
+	\item $\Mac$: on input $k \in\bset^n$ and $m \in \bset^*$ of length $l<2^\frac n4$
+	\begin{itemize}
+		\item Parse $m$ into blocks $m_1,\dots,m_d$ of length $\frac n4$ each (pad with 0's if necessary)
+		\item Choose random $r \pick \bset^\frac n4$
+		\item Compute $t_i \define \Mac_k(r||l||i||m_i)$ for $1\leq i\leq d$, with $|r|=|l|=|i|=\frac n4$
+		\item Output $t \define \langle r,t_1,\dots,t_d\rangle$
+	\end{itemize}
+	\item $\Vrfy$: on input $k, m, t=\langle r,t_1,\ldots,t_{d'}\rangle$,
+	\begin{itemize}
+		\item Parse $m$ into blocks $m_1,\ldots,m_d$ of length $\frac n4$ each
+		\item Output 1 iff $d=d'$ and, $\forall 1\leq i\leq d$, $\Vrfy'_k(r||l||i||m_i,t_i)=1$
+	\end{itemize}
+	%
+\end{itemize}
+
+The goal of this exercise is to prove by reduction that $\Pi$ is existentially unforgeable. Let $\A$ (resp. $\A'$) be an adversary attacking the unforgeability of $\Pi$ (resp. $\Pi'$) and let $\epsilon = \textsc{MacForge}_{\A,\Pi}(n)$ (resp. $\epsilon' = \textsc{MacForge}_{\A',\Pi'}(n)$) denotes its advantage.
+
+\begin{enumerate}
+	\item Make a quick draw sketching the proof.
+	\item Describe formally how $\A'$ should react to a query $\textsc{Mac}_k(m)$.
+	\item Define what is a mac forgery for the scheme $\Pi$. Does it necessarily implie a forgery on the scheme $\Pi'$ (justify your answer).
+	\item Express $\epsilon$ in function of $\epsilon'$ and conclude.
+\end{enumerate}
+
+
+
+\subsection{Exercise 4: Schemes}
+Let $F$ be a pseudorandom function, $G$ be a pseudorandom permutation, $T$ be a public $n$-bit constant, $k$ be a $n$-bit secret key, $m$ be a $n$-bit message, $IV$ be a $n$-bit random value chosen by the party computing the encryption (resp.~MAC) before each operation. Among the following constructions, determine the ones that would be acceptable and justify your answer. (Your justifications can rely on results that have been presented during the class.)
+
+\begin{enumerate}
+	\item $\Enc_k(m) \define F_k(m \oplus T)$ as an encryption scheme secure against
+	eavesdropping.
+
+	\item $\Enc_k(m) \define G_k(m \oplus T)$ as an encryption scheme secure against eavesdropping.
+
+	\item $\Enc_k(m) \define G_k(m \oplus T)$ as an encryption scheme secure against a CPA-adversary.
+
+	\item $\Enc_k(m) \define (IV,G_k(m \oplus T \oplus IV))$ as an encryption scheme secure against a CPA-adversary.
+
+	\item $\Mac_k(m) \define F_k(m \oplus T)$ as a MAC scheme existentially unforgeable under an
+	adaptive chosen-message attack.
+
+	\item $\Mac_k(m) \define (IV,G_k(m\oplus IV \oplus T))$ as a MAC scheme
+	existentially unforgeable under an adaptive chosen-message attack.
+\end{enumerate}
+
+
+
+
+\subsection{Exercise 5: Authenticated Encryption and sPRP}
+
+Consider the following scheme $\Pi=(\Gen,\Enc,\Dec)$ based on the strong pseudorandom permutation $\F \colon \K \times \lbrace 0,1 \rbrace^n$, defined as follow:
+\begin{itemize}
+	\item $\M=\bset^{\frac{n}{2}}$ (the message space)
+	\item $\Gen$ picks a random key $k \in \K$
+	\item $\Enc_k(m)$ picks a random value $r \in \bset^{\frac{n}{2}}$, and computes $c \define \F_k(m \| r)$
+	\item $\Dec_k(c)$ computes $(m\|r)=\F^{-1}_k(c)$ and outputs $m$ (the first half).
+\end{itemize}
+Answers the following questions:
+\begin{itemize}
+	\item is $\Pi$ unforgeable?
+	\item is $\Pi$ CCA-secure? (\emph{To do at home})
+	\item is $\Pi$ an authenticated encryption scheme? (\emph{To do at home})
+\end{itemize}
+
+\paragraph{Definition 1} \label{def: sprp} (\emph{Strong PseudoRandom Permutation})
+
+A function $\F \colon \K \times \M \mapsto \M$ is a $(q,t,\negl)$-\emph{ strong pseudorandom permutation} ($\sprp$) if for any $(q,t)$-bounded adversary, the advantage:
+\[ \mathsf{Adv}^{\sprp}_{\adv}\define
+\left| \Pr\left[ \adv^{\F_k(\cdot),\F_k^{-1}(\cdot)}\Rightarrow 1 \right] -
+\Pr\left[ \adv^{\f(\cdot,\cdot),\f^{-1}(\cdot,\cdot)}\Rightarrow 1 \right] \right|
+\leq \negl \]
+with $k$  and $\f$ picked uniformly at random from their domains, respectively $\K$ and the set of permutations $\M \mapsto \M$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
