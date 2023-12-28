@@ -2,6 +2,7 @@
 \ProvidesPackage{eplcrypto}[2020/01/16 EPL crypto package for cryptography-related courses]
 
 \RequirePackage{mathtools}
+\RequirePackage{amssymb}
 % Encryption
 \newcommand{\A}{\mathcal{A}}
 \newcommand{\Q}{\mathcal{Q}}
@@ -12,6 +13,10 @@
 \newcommand{\D}{\mathcal{D}}
 \renewcommand{\O}{\mathcal{O}}
 \newcommand{\G}{\mathcal{G}}
+\newcommand{\GG}{\mathbb{G}}
+\newcommand{\ZZ}{\mathbb{Z}}
+
+
 \DeclareMathOperator{\Gen}{\mathsf{Gen}}
 \DeclareMathOperator{\Enc}{\mathsf{Enc}}
 \DeclareMathOperator{\Dec}{\mathsf{Dec}}
@@ -42,6 +47,16 @@
 \newcommand{\Sigforge}{\mathsf{Sig-forge}}
 \newcommand{\PrivKae}[1][\A,\Pi]{\PrivK_{#1}^\mathsf{ae}}
 \newcommand{\HashColl}[1][\A,\H]{\mathsf{HashColl}_{#1}}
+\newcommand{\Dlog}[1][\A,\G]{\mathsf{Dlog}_{#1}}
+\newcommand{\CDHn}[1][\A,\G]{\CDH_{#1}(n)}
+\newcommand{\DDHn}[1][\A,\G]{\DDH_{#1}(n)}
+
+
+\newcommand{\PubK}{\mathsf{PubK}}
+\newcommand{\PubKeav}[1][\A,\Pi]{\PubK_{#1}^\mathsf{eav}}
+\newcommand{\PubKcpa}[1][\A,\Pi]{\PubK_{#1}^\mathsf{cpa}}
+\newcommand{\PubKmult}[1][\A,\Pi]{\PubK_{#1}^\mathsf{mult}}
+\newcommand{\PubKcca}[1][\A,\Pi]{\PubK_{#1}^\mathsf{cca}}
 % Functions
 \newcommand{\negl}{\ensuremath{\epsilon}}
 \newcommand{\define}{\coloneqq}
@@ -51,11 +66,13 @@
 
 \newcommand{\Invert}{\mathsf{Invert}}
 \newcommand{\DDH}{\mathsf{DDH}}
+\newcommand{\CDH}{\mathsf{CDH}}
 \newcommand{\DLog}{\mathsf{DLog}}
 
 % Groups
 \newcommand{\Zp}{{\ensuremath{\ZZ_p}}\xspace}
 \newcommand{\Zq}{{\ensuremath{\ZZ_q}}\xspace}
+
 
 \newcommand{\Func}{\textbf{Funct}}
 \newcommand{\Perm}{\textbf{Perm}}
@@ -64,4 +81,21 @@
 \newcommand{\mdt}{The Merkle–Damg\r{a}rd transform }
 
 \newcommand{\xor}{\oplus}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \endinput
