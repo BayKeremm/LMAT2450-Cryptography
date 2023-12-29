@@ -220,10 +220,10 @@ Pr[\PubKmult(n)=1] \le \frac12 + \negl(n)
 Given $\Pi \define \langle \Gen, \Enc, \Dec \rangle$ and PPT adversary $\A$.
 \begin{enumerate}
 \item Generate $(pk,sk) \leftarrow \Gen(1^n)$
-\item $\A(pk)$ is given. oracle access to $\Enc_{pk}(\cdot)$ (it has pk so actually no need) and $\Dec_{pk}(\cdot)$
+\item $\A(pk)$ is given. oracle access to $\Enc_{pk}(\cdot)$ (it has pk so actually no need) and $\Dec_{sk}(\cdot)$
 \item $\A(pk)$ outputs $m_0, m_1$ of same length
 \item Choose $b\leftarrow \bset$ and send $\Enc_{pk}(m_b)$ to $\A$
-\item $\A(pk)$ is again given. oracle access to $\Enc_{pk}(\cdot)$ and $\Dec_{pk}(\cdot)$
+\item $\A(pk)$ is again given. oracle access to $\Enc_{pk}(\cdot)$ and $\Dec_{sk}(\cdot)$
 \item $\A$ outputs $b'$
 \item Define $\PubKcca(n)\define 1 \iff b=b'$
 \end{enumerate}
