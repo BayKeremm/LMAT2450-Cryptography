@@ -1,0 +1,118 @@
+\documentclass[12pt]{article}
+\usepackage{../eplcrypto}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage[parfill]{parskip}
+% See the ``Article customise'' template for come common customisations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\title{Slides09}
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{The RSA signature}
+\subsection{The RSA problem}
+\subsubsection{Experiment: $\RSAinv$}
+\begin{itemize}
+	\item $\langle (N,e),(N,d)\rangle \leftarrow \Gen(1^n)$
+	\item $y\leftarrow \ZZ_N^*$
+	\item $x \leftarrow \A(N,e,y)$
+	\item Define $\RSAinv(n) \define \iff x^e = y \bmod{N}$
+\end{itemize}
+Assumption:
+\begin{itemize}
+	\item $\forall$ PPT $\A$, $\exists$ negl. $\negl$ s.t.:
+	\begin{equation*}
+		Pr[\RSAinv(n)=1] \le \negl(n)
+	\end{equation*}
+	\item The RSA problem is believed to be hard
+	\item Not known to be equivalent to factoring
+	\item Best choice for N: Product of two large prime factors
+\end{itemize}
+
+\subsection{Building a signature scheme with RSA}
+\subsubsection{Simple proposal}
+\begin{itemize}
+	\item $\Gen(1^n)\define \langle (N,e), (N,d)\rangle $ with $|p|=|p|=n$
+	\item $\Sign_{(N,d)}(m) \define [m^d \bmod{N}]$
+	\item $\Vrfy_{(N,e)}(m,\sigma) \define [\sigma^e =^? m \bmod{N}]$
+\end{itemize}
+This simple proposal works, but it is not secure:
+\begin{itemize}
+	\item No-message attack
+	\begin{itemize}
+		\item Take $\sigma$ at random
+		\item Compute $m \define \sigma^e \bmod{N}$
+		\item $(m,\sigma)$ is a forgery
+	\end{itemize}
+	\item Signature combination
+	\begin{itemize}
+		\item Suppose $\A$ wants to forge a signature on $m$
+		\item $\A$ chooses $m_1$ at random and obtains signature $\sigma_1$
+		\item $\A$ computes $m_2 \define m/m_1 \bmod{N}$ and obtains signature $\sigma_2$
+		\item Now $\sigma \define \sigma_1 \cdot \sigma_2 \bmod{N}$ is a valid signature on $m$
+	\end{itemize}	
+\end{itemize}
+
+\subsubsection{Hashed RSA}
+Hash the message before applying RSA:
+\begin{equation*}
+	\sigma(m) \define H(m)^d \bmod{N}
+\end{equation*}
+Verification is simple:
+\begin{equation*}
+	\sigma^e =^? H(m) \bmod{N}
+\end{equation*}
+$H$ must be collision resistant, otherwise one could forge a signature for $m$ from the signature of $m'$ s.t. $H(m)=H(m')$.\\
+This construction avoids the attacks that simple scheme suffered in the previous subsection.
+\begin{itemize}
+	\item No-message attack
+	\begin{itemize}
+		\item $\A$ would need to find $m$ s.t. $H(m) = \sigma^e \bmod{N}$. This is difficult if $H$ is pre-image resistant.
+	\end{itemize}
+	\item Signature combination
+	\begin{itemize}
+		\item $\A$ would need to find $m,m_1,m_2$ s.t.\\
+		$H(m) = H(m_1)\cdot H(m_1)\bmod{N} $ which seems difficult for traditional hash functions.
+	\end{itemize}	
+\end{itemize}
+Can we prove that this works $=>$ No. There is no expected propery of $H$ for which hashed RSA signatures can be proven secure in the sense of our definition for hash functions.
+\newpage
+
+
+\section{RSA-FDH}
+Define \textbf{RSA-FDH} scheme $\Pi$ as follows.
+\begin{itemize}
+	\item $\Gen$:  $\langle (N,e,d)\rangle \leftarrow RSA(1^n)$
+	\item $\Sign$: On input $(N,d)$ and $m\in \bset^*$, output\\
+	$\sigma \define H(m)^d \bmod{N}$
+	\item $\Vrfy$ On input $(N,e),m \in \bset^*$ and $\sigma$, output 1 iff\\  $[\sigma^e =^? m \bmod{N}]$
+\end{itemize}
+\textbf{Theorem:} If the RSA problem is hard, then $\Pi$ is EUF-CMA in the ROM
+
+
+\section{Encrypting with RSA}
+RSA can also be used as a public key encryption scheme (with some addition of randomness). 
+\subsection{Padded RSA}
+\begin{itemize}
+	\item $|m| \in \bset^{\frac{|N|}{2}-2}$ and $r\leftarrow \bset^{|N|-|m|-1}$\\
+	$\Enc_{N,e}(m) \define (r||m)^e \bmod{N}$
+	\item $\Dec_{N,d}(c) \define c^d \bmod{N}$
+\end{itemize}
+This is believed to be CPA-secure if the RSA problem is hard.
+
+
+
+
+
+\end{document}

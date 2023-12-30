@@ -1,0 +1,201 @@
+\documentclass[12pt]{article}
+\usepackage{../eplcrypto}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage[parfill]{parskip}
+% See the ``Article customise'' template for come common customisations
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\title{Slides08}
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+
+\section{Message integrity revisited}
+Goal: ensure integrity and origin of message. We had a solution with MACs, however, the same key was used to generate and check MACs. Anyone who can check a MAC can also forge one. This will not work if all participants do not trust each other(that is why we concluded in slides05 that MAC will work in small communities)
+
+\section{Digital Signature}
+Principle:
+\begin{itemize}
+	\item Bob generates a key $pk,sk$
+	\item $sk$ is kept secret, and used to sign messages
+	\item $pk$ is made public, and used to verify signatures
+\end{itemize}
+
+So:
+\begin{itemize}
+	\item Only Bob can produce signatures
+	\item Anyone (who has Bob's public key) can verify that Bob's signature is authentic.
+\end{itemize}
+
+\subsection{Advantages over MAC}
+Simpler key management:
+\begin{itemize}
+	\item Signature: With one key pair, Bob can send authenticates messages to as many users as he wants.
+	\item MAC: typically, Bob will need one key per contact
+\end{itemize}
+
+Publicly verifiable:
+\begin{itemize}
+	\item Signature: If Alice receives a mesage signed by Bob, she knows that everyone else will also consider it authentic
+	\item MAC: Bob could have sent a valid $\Mac_k(m)$ to Alice but an invalid $\Mac_{k'}(m)$ to Steve, so not publicly verifiable
+\end{itemize}
+
+Transferable
+\begin{itemize}
+	\item Signature: Alice can bring a signed message to a third party (a judge) and convince him that Bob signed the message.
+	\item MAC:
+	\begin{itemize}
+		\item Alice would need to reveal the key to the third party
+		\item Even if she does, Alice could have generated the MAC herself
+	\end{itemize}
+\end{itemize}
+
+Non repudiable:
+\begin{itemize}
+	\item Bob cannot later deny that he signed the message
+\end{itemize}
+
+\subsection*{Then why would we use MACs? }
+
+
+
+\begin{itemize}
+	\item Because electronic signature is more expensive. Same as "symmetric" vs "asymmetric" 	encryption argument: 100-1000 times less efficient (for short messages at least)
+	\item Because they are very useful to strengthen symmetric encryption: non-malleable / 		authenticated encryption.
+\end{itemize}
+
+\subsection{Definition of a signature scheme}
+A signature scheme is a triple $\Pi \define \langle \Gen, \Sign, \Vrfy \rangle$
+\begin{itemize}
+	\item $\Gen$ probabilistically selects $(pk,sk) \leftarrow \Gen(1^n)$
+	\item $\Sign$ provides $\sigma \leftarrow \Sign_{sk}(m)$
+	\item $\Vrfy$ outputs a bit $b \define \Vrfy_{pk}(m,\sigma)$
+\end{itemize}
+
+s.t. $\forall n, (pk,sk)\leftarrow \Gen(1^n), \forall m:$
+\begin{equation*}
+\Vrfy_{pk}(m, \Sign_{sk}(m))=1
+\end{equation*}
+except with negligible probability. This can be defined for fixed as well as arbitrary length messages.
+\newpage
+\subsubsection{Usage}
+\begin{itemize}
+	\item Bob uses $\Gen$ to generate a key pair (pk,sk)
+	\item Bob advertises $pk$
+	\item When he wants to transmit $m$, Bob computes $\sigma \leftarrow \Sign_{sk}(m)$ and sends $(m,\sigma)$
+	\item Receiver retrieves $pk$
+	\item Receiver checks that $\Vrfy_{pk}(m,\sigma)=1$. This ensures that:
+	\begin{itemize}
+		\item $m$ originates from Bob
+		\item m has not been modified
+		\item sheesh
+	\end{itemize}
+\end{itemize}
+Remarks:
+\begin{itemize}
+	\item It does not say when $m$ was emitted.
+	\item Not that $m$ is not a replay
+\end{itemize}
+For these issues, specific measures have to be added.
+
+
+\subsection{Definition of security for digital signature}
+intuition: No adversary can produce a valid signature for a message that was not previously signed, even if he can obtain signatures of messages of his choice. This would be called a forgery.
+
+\subsubsection{Experiment: $\Sigforge$}
+Define the signature forgery experiment:
+\begin{itemize}
+	\item Choose $(pk,sk) \leftarrow \Gen(1^n)$
+	\item $\A$ receives $pk$ and oracle access to $\Sign_{sk}(\cdot)$ for messages of his choice (denote $\Q$ the set of messages he queries and receives a signature)
+	\item $\A$ outputs $(m, \sigma)$
+	\item Define $\Sigforge(n) \define 1 \iff \Vrfy_{pk}(m,\sigma)=1$ and $m \notin \Q$
+\end{itemize}
+A signature scheme $\Pi \define \langle \Gen, \Sign, \Vrfy \rangle$ is \emph{existentially unforgeable under an adaptive chosen-message attack} (EUF-CMA) if $\forall$ PPT $\A$, $\exists$ negl. $\negl$:
+\begin{equation*}
+	Pr[\Sigforge(n)] \le \negl(n)
+\end{equation*}
+
+\section{Schnorr's Signature Scheme}
+Non-interactive Schnorr can be turned into a signature scheme:
+\begin{itemize}
+	\item Hash message together with a
+\end{itemize}
+
+Definition:
+\begin{itemize}
+	\item $\Gen(1^n)$ runs $\G(1^n)$ to obtain $\langle \GG, q, g \rangle$, then picks $x \leftarrow \ZZ_q$, sets $h=g^x$ and returns $(pk,sk)=(h,x)$
+	\item $\Sign_x(m)$ picks $r \leftarrow \ZZ_q$, sets $a=g^r, e=\H(a,m), f=r+e\cdot x$, and returns $(e,f)$
+	\item $\Vrfy_h(m,(e,f))$ computes $a=g^f/h^e$ and checks if $\H(a,m)=e$ 
+\end{itemize}
+Observe: h is not included in the inputs of $\H$, not needed because $h$ is published before signing.
+
+\subsection{Security}
+Schnorr's signature scheme is EUF-CMA secure in the ROM assuming that the DL is hard with respect to $\G$.
+
+Let:
+\begin{itemize}
+	\item $\A$ be an EUF-CMA adversary against Schnorr's signature making at most $t$ queries to the RO (all distinct) and winning with probability $\negl$
+	\item $P^*$ be an adversary against the soundness of Schnorr's protocol
+\end{itemize}
+It can be shown that $P^*$ can win with probability $\negl/t$ + negl. If $\negl$ not-negligible, then:
+\begin{itemize}
+	\item The DL problem is not hard w.r.t. $\G$ or Schnorr's protocol is not sound
+\end{itemize}
+
+$P^*$ proceeds as follows:
+\begin{itemize}
+	\item Receives proof statement $h=g^x$, submit it as public key to $\A$
+	\item Picks a random $j \leftarrow {1, \dots, t}$
+	\item When $\A$ makes its $i$-th RO query query, on $(g^r,m)$:
+	\begin{itemize}
+		\item If $i=j$, submits $g^r$ to the Schnorr verifier, get e, et $\H(g^r,m)=e$ and return $e$ to $\A$
+		\item if $i \neq j$ returns a random value to $\A$
+	\end{itemize}
+	\item When $\A$ asks for a signature on $m$, runs Schnorr's simulator to get $(a,e,f)$ and sets $\H(a,m)=e$
+	\item When $\A$ outputs a forgery $(m^*,e^*,f^*)$, outputs $f^*$ to the Schnorr verifier 
+\end{itemize}
+
+
+This strategy wins if:
+\begin{itemize}
+	\item $\A$ indeed produces a forgery ($Pr=\negl$)
+	\item $P^*$ did not define $\H(g^r,m)$ before the $j$-th query (with high Pr)
+	\item $P^*$ made a correct guess, i.e., $g^{f^*} / h^{e^*} = g^r$ and $m^*=m$ with $(g^r,m)$ as in the $j$-th query ($Pr \ge 1/q$) 
+\end{itemize}
+
+Since $P^*$ cannot solve the DL and can only break soundness with negligible probability, $\negl$ must be negligible.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
