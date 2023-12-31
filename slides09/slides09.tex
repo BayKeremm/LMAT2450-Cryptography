@@ -111,6 +111,99 @@ RSA can also be used as a public key encryption scheme (with some addition of ra
 \end{itemize}
 This is believed to be CPA-secure if the RSA problem is hard.
 
+\section{Certificates and PKI}
+The key notion here is a digital certificate, which is simply a signature binding an entity to some public key.
+Principle:
+\begin{itemize}
+	\item Bob generates a key pair $pk,sk$
+	\item Bob meets Charlie and convinces him that he is Bob and that $pk$ is his public key
+	\item Charlie gives $\cert_{C\rightarrow B}$
+	\item Bob can now use $\cert_{C\rightarrow B}$ to introduce himself to anyone who knows Charlie
+\end{itemize}
+$\cert_{C\rightarrow B}$ is called certificate for Bob's key issued by Charlie: $\Sign_{sk_C}(\text{Bob's key is }pk_B )$
+\newpage
+Alice must be convinced:
+\begin{itemize}
+	\item That Charlie's key is $pk_C$
+	\item That Charlie is honest
+	\item That Charlie does check Bob's identity before issuing $\cert_{C\rightarrow B}$
+\end{itemize}
+Alice considers Charlie as a \emph{certification authority (CA)}
+
+The certification relationship can be chained:
+\begin{itemize}
+	\item Bob provides Alice with $pk_B$, $\cert_{C\rightarrow B}$, $\cert_{D\rightarrow C}$, $\cert_{E\rightarrow D}$
+	\item If Alice:
+	\begin{itemize}
+		\item Has a copy of $pk_E$, and knows it is authentic
+		\item And knows that C,D,E are good CAs
+	\end{itemize}
+	Then she can conclude that Bob's public key is $pk_B$
+\end{itemize}
+
+
+\subsection{Hierarchic PKI}
+A CA often develops an internal hierarchy:
+\begin{itemize}
+	\item High-level (super-protected) root CA
+	\item Mid-level CAs, certified by higher levels
+\end{itemize}
+
+Root CA's key must be transmitted in a secure way
+\begin{itemize}
+	\item Hand-to-hand given when entering a company
+	\item Embedded in web browser
+	\item Embedded in operating system
+\end{itemize}
+
+
+
+\subsection{Flat PKI}
+I trust someone's key:
+\begin{itemize}
+	\item Because I met him personally
+	\item Or because I trust the key of someone who trusts him
+	\item A recursive relationship
+\end{itemize}
+Trust level can be associated to each contact (possible to use combined trust)
+
+First-hand certificates must be distributed in a secure way.
+\begin{itemize}
+	\item Face-to-face meeting (key signing parties)
+	\item Read over the phone (key fingerprint)
+\end{itemize}
+
+Typical example: PGP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
