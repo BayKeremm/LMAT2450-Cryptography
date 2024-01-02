@@ -318,8 +318,17 @@ L contains all $\mathbf{x} = (g_1,g_2,g_3,g_4)$ s.t. $\log_{g_1}(g_2) = \log_{g_
   \draw[->,thick] ($(Prover)+(0,-4)$) -- ($(Verifier)+(0,-4.5)$) node [pos=0.5,above,font=\footnotesize] {f};
 \end{tikzpicture}
 
-$P$ proves that $\log_{g_1}(g_2) = \log_{g_2}(g_4)$, which is the statement $x$.\\
-\textbf{Soundness}: works with the same witness extractor as before. $((a_1,a_3),e,f)$ and  $((a_1,a_3),e',f')$ then $\log_{g_1}(g_2) = \log_{g_2}(g_4) = \frac{f-f'}{e-e'}$ 
+$P$ proves that $\log_{g_1}(g_2) = \log_{g_3}(g_4)$, which is the statement $x$.\\
+\textbf{Soundness}: works with the same witness extractor as before. $((a_1,a_3),e,f)$ and  $((a_1,a_3),e',f')$ then $\log_{g_1}(g_2) = \log_{g_3}(g_4) = \frac{f-f'}{e-e'}$ 
+
+$L contains all \mathsf{x}=(g_1,g_2,g_3,g_4)$ s.t. $\log_{g_1}(g_2) = \log_{g_3}(g_4)$
+\begin{itemize}
+	\item Either: $(g_1,g_2,g_3,g_4) \define (g,g^x,g^y,g^{xy})$
+	\item Or: $(g_1,g_2,g_3,g_4) \define (g,g^y,g^x,g^{xy})$
+\end{itemize}
+
+
+
 
 \textbf{Honest verifier zero-knowledge}: Choose $e,f$ random and compute $g_1^r \define g_1^f / (g_2)^e$ and $g_3^r \define g_3^f / (g_4)^e$
 \newpage
