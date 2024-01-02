@@ -10,6 +10,12 @@
 \usepackage{amssymb}
 \usepackage{algorithmic}
 \usepackage{algorithm}
+\usepackage{tikz}
+
+\usetikzlibrary{calc,positioning}
+
+
+
 \title{Slides09}
 
 %%% BEGIN DOCUMENT
@@ -177,21 +183,136 @@ Typical example: PGP
 
 
 
+\section{Signatures from the Discrete-Logarithm Problem}
+\subsection{Identification Schemes}
+An identification scheme is an interactive protocol that allows one party to prove its identity (to authenticate itself) to another. Here, we are interested in the public-key setting where the prover and verifier do not share any secret information (such as a password) in advance, instead the verifier only knows the public key of the prover.
+
+
+\begin{tikzpicture}
+  % Alice
+  \node[draw] (Prover) at (-2,0) {Prover}; 
+  \draw[thick] (Prover) -- ++(0, -5);
+  % Calculations of Alice
+  \node[draw=none,fill=none,anchor=east] (asecret) at ($(Prover) + (0,-1)$) {$(I,\text{st}) \leftarrow P_1(sk)$};
+  \node[draw=none,fill=none,anchor=east] (asecret) at ($(Prover) + (0,-4)$) {$s \define P_2(sk,\text{st},r)$};
+  % Bob
+  \node[draw] (Verifier) at (2,0) {Verifier}; 
+  \draw[thick] (Verifier) -- ++(0, -5);
+   
+  % Calculations of Bob
+  \node[draw=none,fill=none,anchor=west] (Bpublic) at ($(Verifier) + (0,-3)$) {$r \leftarrow {\Omega_{pk}}$};
+  \node[draw=none,fill=none,anchor=west] (Bpublic) at ($(Verifier) + (0,-5)$) {$V(pk, r, s)=^?I$};
+   
+  % Messages
+  \draw[->,thick] ($(Prover)+(0,-2)$) -- ($(Verifier)+(0,-2.5)$) node [pos=0.5,above,font=\footnotesize] {I};
+  \draw[->,thick] ($(Verifier)+(0,-3)$) -- ($(Prover)+(0,-3.5)$) node [pos=0.5,above,font=\footnotesize] {r};
+  \draw[->,thick] ($(Prover)+(0,-4)$) -- ($(Verifier)+(0,-4.5)$) node [pos=0.5,above,font=\footnotesize] {s};    
+\end{tikzpicture}
+
+A general three-round identification protocol of a specific form where the prover is specified by two algorithms $P_1,P_2$ and the verifier's side of the protocol is specified by an algorithm $V$.
+\newpage
+\subsubsection{Experiment: $\Ident(n)$}
+\begin{enumerate}
+	\item $\Gen(1^n)$ is run to obtain keys $(pk,sk)$
+	\item Adversary $\A$ is given $pk$ and access to an oracle $\mathsf{Trans}_{sk}$ that it can query as often as it likes
+	\item At any point during the experiment, $\A$ outputs a message $I$. A uniform challenge $r \in \Omega_{pk}$ is chosen and given to $\A$ who responds with some $s$. ($\A$ may choose to query $\mathsf{Trans}_{sk}$ even after receiving $r$)
+	\item The experiment outputs 1 if and only if $V(pk,r,s)=^? I$ 
+\end{enumerate}
+
+An identification scheme $\Pi = (\Gen, P_1,P_2,V)$ is secure against a passive attack, or just secure, if $\forall$ PPT $\A$, $\exists$ negl. $\negl$ s.t.:
+\begin{equation*}
+	Pr[\Ident(n)=1] \le \negl(n)
+\end{equation*}
+
+\subsection{From Identification Schemes to Signatures}
+The Fiat-Shamir transform provides a way to convert any (interactive) identification scheme into a (non-interactive) signature scheme. The basic idea is for the signer to act as a prover, running the identification protocol by itself.
+
+\subsubsection{Fiat-Shamir transform}
+Let $(\Gen_{id}, P_1,P_2,V)$ be an identification scheme, and construct a signature scheme as follows:
+\begin{itemize}
+	\item $\Gen$: On input $1^n$, simply run $\Gen(1^n)$ to obtain $pk,sk$\\
+	The public key $pk$, specifies a set of challenges $\Omega_{pk}$. As part of key generation, a function $H: \bset^* \rightarrow \Omega_{pk} $ is specified (left implicit)
+	\item $\Sign$: On input a private key $sk$ and a message $m \in \bset^*$, do:
+	\begin{enumerate}
+		\item Compute $(I,st) \leftarrow P_1(sk)$
+		\item Compute $r \define H(I,m)$
+		\item Compute $s\define P_2(sk,st,r)$
+	\end{enumerate}
+	Output the signature $(r,s)$
+	\item $\Vrfy$: On input a public key $pk$, a message $m$, and a signature $(r,s)$, compute $I \define V(pk,r,s)$ and output 1 $\iff H(I,m)=^?r$ 
+\end{itemize}
+
+A signature $(r,s)$ is "bound" to a specific message $m$ because $r$ is a function of both $I$ and $m$; changing $m$ thus results in a completely different $r$.
+
+
+\textbf{Theorem:} Let $\Pi$ be an identification scheme, and let $\Pi'$ be the signature scheme that results by applying the Fiat-Shamir transform to it. If $\Pi$ is secure and $H$ is modelled as a random oracle, then $\Pi'$ is secure. 
 
 
 
+\subsection{The Schnorr Identification/Signature Schemes}
+The prover runs $(\GG, q, g, y) \leftarrow \G(1^n)$, chooses a uniform $x \in \ZZ_q$ and sets $y \define g^x$, $pk \define \langle \GG,q,g,y \rangle $,  $sk = x$
+\subsubsection{Schnorr Identification Scheme}
+\begin{tikzpicture}
+  % Public parameter:
+  \node[draw=none,fill=none,align=center] (public) at (0,1) {Public parameter:\\$\GG,q,g,h$};
+  % Alice
+  \node[draw] (Prover) at (-2,0) {Prover(x)}; 
+  \draw[thick] (Prover) -- ++(0, -6);
+    
+  % Calculations of Alice
+  \node[draw=none,fill=none,anchor=east] (asecret) at ($(Prover) + (0,-1)$) {$k \leftarrow {\ZZ_q}$};
+  \node[draw=none,fill=none,anchor=east] (Apublic) at ($(Prover) + (0,-2)$) {$I = g^{k} \bmod{q}$};
+  \node[draw=none,fill=none,anchor=east] (akey) at ($(Prover) + (0,-4)$) {$s \define k + r \cdot x \bmod{q}$};
+    
+  % Bob
+  \node[draw] (Verifier) at (2,0) {Verifier}; 
+  \draw[thick] (Verifier) -- ++(0, -6);
+   
+  % Calculations of Bob
+  \node[draw=none,fill=none,anchor=west] (Bpublic) at ($(Verifier) + (0,-3)$) {$r \leftarrow {\ZZ_q}$};
+  \node[draw=none,fill=none,anchor=west] (Bpublic) at ($(Verifier) + (0,-5)$) {check whether $g^s\cdot y^{-r} =^? I$};
+   
+  % Messages
+  \draw[->,thick] ($(Prover)+(0,-2)$) -- ($(Verifier)+(0,-2.5)$) node [pos=0.5,above,font=\footnotesize] {I};
+  \draw[->,thick] ($(Verifier)+(0,-3)$) -- ($(Prover)+(0,-3.5)$) node [pos=0.5,above,font=\footnotesize] {r};
+  \draw[->,thick] ($(Prover)+(0,-4)$) -- ($(Verifier)+(0,-4.5)$) node [pos=0.5,above,font=\footnotesize] {s};
+\end{tikzpicture}
+
+\emph{Passive eavesdropping is no help to the attacker. The reason is that the attacker can simulate the transcripts of honest executions on its own, based on the public key without knowledge of the private key}.\\
+Simulation goes as follows:
+\begin{enumerate}
+	\item Choose uniform and independent $r,s \in \ZZ_q$
+	\item Set $I \define g^s\cdot y^{-r}$
+\end{enumerate}
+Proof idea: We have reduced to an attacker who gets a public key $y$, sends an initial message $I$, is given in response a uniform challenge $r$, and then must send a response $s$ for which $g^s \cdot y^{-r} = I$. If the attacker is able to do this with high probability, then it must be able to compute correct responses $s_1, s_2$ to at least two different challenges $r_1, r_2 \in \ZZ_q$
+
+But then this means that the attacker can now compute the discrete log:
+\begin{equation*}
+g^{s_1} \cdot y^{-r_1} = I = g^{s_2} \cdot y^{-r_2}
+\end{equation*}
+\begin{equation*}
+g^{s_1 - s_2}  = y^{r_1-r_2}
+\end{equation*}
+\begin{equation*}
+\log_gy = [(s_1-s_2)\cdot (r_1-r_2)^{-1} \bmod{q}]
+\end{equation*}
+contradicting the assumed hardness of the discrete logarithm.
 
 
+\subsubsection{Schnorr Signature Scheme}
+The Schnorr signature scheme is obtained by applying the Fiat-Shamir transform to the Schnoor identification scheme.
 
-
-
-
-
-
-
-
-
-
+\begin{itemize}
+	\item $\Gen$: $(\GG,q,g)\leftarrow \G(1^n)$\\
+	$x \leftarrow \ZZ_q$ and set $y\define g^x$\\
+	$pk=\langle \GG,q,g, y\rangle$ and $sk=x$
+	\item $\Sign$: Input: $(x,m)$\\
+	$k \leftarrow \ZZ_q$ and set $I\define g^k$\\
+	Compute: $r \define H(I,m)$ and $s\define rx+k \bmod{q}$\\
+	Output: $(r,s)$ as signature
+	\item $\Vrfy$: Input: $pk,m, (r,s)$\\
+	Compute: $I \define g^s\cdot y^{-r}$ and output 1 if $H(I,m)=^?r$
+\end{itemize}
 
 
 
